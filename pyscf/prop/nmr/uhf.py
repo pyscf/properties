@@ -20,7 +20,7 @@
 Non-relativistic NMR shielding tensor
 '''
 
-import time
+
 from functools import reduce
 import numpy
 from pyscf import lib
@@ -145,11 +145,11 @@ def solve_mo1(nmrobj, mo_energy=None, mo_coeff=None, mo_occ=None,
             If a function is given, CPHF equation will be solved, and the
             given function is used to compute induced potential
     '''
-    cput1 = (time.clock(), time.time())
+    cput1 = (logger.process_clock(), logger.perf_counter())
     log = logger.Logger(nmrobj.stdout, nmrobj.verbose)
     if mo_energy is None: mo_energy = nmrobj._scf.mo_energy
-    if mo_coeff  is None: mo_coeff = nmrobj._scf.mo_coeff
-    if mo_occ    is None: mo_occ = nmrobj._scf.mo_occ
+    if mo_coeff is None: mo_coeff = nmrobj._scf.mo_coeff
+    if mo_occ is None: mo_occ = nmrobj._scf.mo_occ
     if with_cphf is None: with_cphf = nmrobj.cphf
 
     mol = nmrobj.mol

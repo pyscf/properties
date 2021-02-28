@@ -24,7 +24,7 @@ Refs:
 '''
 
 
-import time
+
 import numpy
 from pyscf import lib
 from pyscf.lib import logger
@@ -122,7 +122,7 @@ class NSR(rhf_nmr.NMR):
     '''Nuclear-spin rotation tensors'''
 
     def kernel(self):
-        cput0 = (time.clock(), time.time())
+        cput0 = (logger.process_clock(), logger.perf_counter())
         self.check_sanity()
         self.dump_flags()
 
@@ -140,7 +140,7 @@ class NSR(rhf_nmr.NMR):
         if self.verbose >= logger.NOTE:
             for i, atm_id in enumerate(self.shielding_nuc):
                 _write(self.stdout, e11[i],
-                       '\ntotal NSR of atom %d %s' \
+                       '\ntotal NSR of atom %d %s'
                        % (atm_id, self.mol.atom_symbol(atm_id)))
                 _write(self.stdout, e11[i], '\nNuclear spin rotation (kHz)')
                 _write(self.stdout, e_dia[i], 'dia-magnetic contribution (kHz)')

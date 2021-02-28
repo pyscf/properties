@@ -26,13 +26,15 @@ Refs:
 '''
 
 
-import time
+import warnings
 import numpy
 from pyscf import lib
 from pyscf.lib import logger
 from pyscf.scf import jk
 from pyscf.prop.nmr import uhf as uhf_nmr
 from pyscf.prop.magnetizability import rhf as rhf_mag
+
+warnings.warn('Module magnetizability is under testing')
 
 
 def dia(magobj, gauge_orig=None):
@@ -89,7 +91,7 @@ def para(magobj, gauge_orig=None, h1=None, s1=None, with_cphf=None):
             given function is used to compute induced potential
     '''
     log = logger.Logger(magobj.stdout, magobj.verbose)
-    cput1 = (time.clock(), time.time())
+    cput1 = (logger.process_clock(), logger.perf_counter())
 
     mol = magobj.mol
     mf = magobj._scf

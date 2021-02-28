@@ -26,8 +26,9 @@ Refs:
     JCP 127, 164112 (2007); 10.1063/1.2772857
 '''
 
-import time
+
 from functools import reduce
+import warnings
 import numpy
 from pyscf import lib
 from pyscf.lib import logger
@@ -35,6 +36,8 @@ from pyscf.ao2mo import _ao2mo
 from pyscf.scf import _response_functions  # noqa
 from pyscf.prop.ssc.rhf import _dm1_mo2ao
 from pyscf.data import nist
+
+warnings.warn('Module ZFS is under testing')
 
 
 def koseki_charge(z):
@@ -189,7 +192,7 @@ def make_soc2e(zfsobj, mo_coeff, mo_occ):
     return haa, hab, hba, hbb
 
 def solve_mo1(sscobj, h1):
-    cput1 = (time.clock(), time.time())
+    cput1 = (logger.process_clock(), logger.perf_counter())
     log = logger.Logger(sscobj.stdout, sscobj.verbose)
 
     mo_energy = sscobj._scf.mo_energy
@@ -311,7 +314,7 @@ class ZeroFieldSplitting(lib.StreamObject):
         return self
 
     def kernel(self, mo1=None):
-        cput0 = (time.clock(), time.time())
+        cput0 = (logger.process_clock(), logger.perf_counter())
         self.check_sanity()
         self.dump_flags()
 

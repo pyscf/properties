@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Copyright 2014-2020 The PySCF Developers. All Rights Reserved.
+# Copyright 2017-2021 The PySCF Developers. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ Ref:
 [2] H. Akai et al. Prog. Theor. Phys. Suppl. 101, 11 (1990)
 '''
 
-import time
+
 import numpy
 import scipy.special
 from pyscf import lib
@@ -92,7 +92,8 @@ EFG = kernel
 
 
 def _get_quad_nuc(cell, atm_id):
-    ew_eta, ew_cut = cell.get_ewald_params()
+    ew_eta = cell.ew_eta
+    ew_cut = cell.ew_cut
     chargs = cell.atom_charges()
     coords = cell.atom_coords()
     Lall = cell.get_lattice_Ls(rcut=ew_cut)
@@ -142,7 +143,7 @@ def _get_quad_nuc(cell, atm_id):
 
 
 def _fft_quad_integrals(mydf, dm, efg_nuc):
-    # Use FFTDF to compute the integrals of quadrupole operator 
+    # Use FFTDF to compute the integrals of quadrupole operator
     # (3 \vec{r} \vec{r} - r^2) / r^5
     cell = mydf.cell
     if cell.dimension != 3:
@@ -181,14 +182,14 @@ def _fft_quad_integrals(mydf, dm, efg_nuc):
     return efg_e
 
 def _aft_quad_integrals(mydf, dm, efg_nuc):
-    # Use AFTDF to compute the integrals of quadrupole operator 
+    # Use AFTDF to compute the integrals of quadrupole operator
     # (3 \vec{r} \vec{r} - r^2) / r^5
     cell = mydf.cell
     if cell.dimension != 3:
         raise NotImplementedError
 
     log = lib.logger.new_logger(mydf)
-    t0 = t1 = (time.clock(), time.time())
+    t0 = t1 = (lib.logger.process_clock(), lib.logger.perf_counter())
 
     mesh = mydf.mesh
     kpts = mydf.kpts

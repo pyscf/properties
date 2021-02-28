@@ -24,7 +24,7 @@
 '''
 
 
-import time
+
 import numpy
 import scipy.linalg
 from pyscf import lib
@@ -178,11 +178,11 @@ def make_h1(mol, mo_coeff, mo_occ, atmlst):
 
 def solve_mo1(sscobj, mo_energy=None, mo_coeff=None, mo_occ=None,
               h1=None, s1=None, with_cphf=None):
-    cput1 = (time.clock(), time.time())
+    cput1 = (logger.process_clock(), logger.perf_counter())
     log = logger.Logger(sscobj.stdout, sscobj.verbose)
     if mo_energy is None: mo_energy = sscobj._scf.mo_energy
-    if mo_coeff  is None: mo_coeff = sscobj._scf.mo_coeff
-    if mo_occ    is None: mo_occ = sscobj._scf.mo_occ
+    if mo_coeff is None: mo_coeff = sscobj._scf.mo_coeff
+    if mo_occ is None: mo_occ = sscobj._scf.mo_occ
     if with_cphf is None: with_cphf = sscobj.cphf
 
     mol = sscobj.mol
@@ -259,7 +259,7 @@ class SpinSpinCoupling(rhf_ssc.SpinSpinCoupling):
         return self
 
     def kernel(self, mo1=None):
-        cput0 = (time.clock(), time.time())
+        cput0 = (logger.process_clock(), logger.perf_counter())
         self.check_sanity()
         self.dump_flags()
         mol = self.mol
@@ -287,7 +287,7 @@ class SpinSpinCoupling(rhf_ssc.SpinSpinCoupling):
                 ktensor[i,j] = ktensor[j,i] = iso_ssc[k]
                 if self.verbose >= logger.DEBUG:
                     _write(self.stdout, e11[k],
-                           '\nSSC E11 between %d %s and %d %s' \
+                           '\nSSC E11 between %d %s and %d %s'
                            % (i, self.mol.atom_symbol(i),
                               j, self.mol.atom_symbol(j)))
                     _write(self.stdout, ssc_dia [k], 'dia-magnetism')
