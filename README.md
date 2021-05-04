@@ -8,9 +8,9 @@ Electromagnetic properties
 
 Install
 -------
-* Install to python site-package folder
+* Install to python site-packages folder
 ```
-pip install https://github.com/pyscf/properties
+pip install git+https://github.com/pyscf/properties
 ```
 
 * Install in a custom folder for development
