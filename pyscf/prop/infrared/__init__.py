@@ -1,6 +1,7 @@
 from . import rhf
 from . import rks
-
+from . import uhf
+from . import uks
 
 import warnings
 

@@ -192,7 +192,7 @@ class Infrared(lib.StreamObject):
         ir_inten = self.ir_inten.copy()
         ir_inten[np.abs(np.imag(freq)) > 1e-10] = 0
         freq = np.real(freq)
-        x = x if x else np.linspace(0, np.max([4000., np.max(freq)]), 4000)
+        x = x if x else np.linspace(0, np.max([4000., np.max(freq) + 5*w]), 4000)
         ax.plot(x, [ir_point(xi, w, freq, ir_inten) for xi in x], label="Molar Absorption Coefficient")
         ax.set_ylabel("Molar Absorption Coefficient (L mol$^{-1}$ cm$^{-1}$)")
         ax.set_xlabel("Vibration Wavenumber (cm$^{-1}$)")

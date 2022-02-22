@@ -20,18 +20,18 @@ from pyscf.prop import infrared
 from pyscf import hessian
 
 
-class Infrared(infrared.rhf.Infrared):
+class Infrared(infrared.uhf.Infrared):
 
-    hess_cls = hessian.rks.Hessian
+    hess_cls = hessian.uks.Hessian
 
 
 if __name__ == '__main__':
     from pyscf import gto, dft
-    import numpy as np
-    mol = gto.Mole(atom="N 0 0 0; H 0.8 0 0; H 0 1 0; H 0 0 1.2", basis="6-31G", verbose=0).build()
-    mf = dft.RKS(mol, xc="PBE0").run()
-    # results from qchem (grid 99590):
-    # 13.329  10.066  5.686  57.957  30.175  4.158
+    mol = gto.Mole(atom="N 0 0 0; H 0.8 0 0; H 0 1 0; H 0 0 1.2", basis="6-31G", verbose=0,
+                   charge=1, spin=1).build()
+    mf = dft.UKS(mol, xc="PBE0").run()
+    # results from qchem:
+    # 129.094  162.634  179.495  50.924  79.706  79.964
     mf_ir = Infrared(mf).run()
     mf_ir.summary()
     fig = mf_ir.plot_ir()[0]
