@@ -35,6 +35,6 @@ if __name__ == '__main__':
     #       https://cccbdb.nist.gov/vibscalejust.asp
     fig, ax, ax2 = mf_ir.plot_ir(w=100, scale=0.903)
     ax.set_title(r"Infrared Spectra of Methylformate Molecule ($\mathrm{CH_3COOH}$)" "\n"
-                 r"HF/6-31G with scaling factor 0.903 and Lorentz widen with $\mathrm{FWHW = 100 cm^{-1}}")
+                 r"HF/6-31G with scaling factor 0.903 and Lorentz broadening with $\mathrm{FWHW = 100 cm^{-1}}")
     fig.tight_layout()
     fig.show()
