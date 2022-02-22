@@ -110,9 +110,9 @@ def kernel_dipderiv(mf_ir):
 
 def kernel_ir(mf_ir):
     mol = mf_ir.mol
-    if mf_ir.thermo_dict is None:
-        mf_ir.thermo_dict = thermo.harmonic_analysis(mol, mf_ir.mf_hess.de)
-    d = mf_ir.thermo_dict
+    if mf_ir.vib_dict is None:
+        mf_ir.vib_dict = thermo.harmonic_analysis(mol, mf_ir.mf_hess.de)
+    d = mf_ir.vib_dict
     q = d["norm_mode"].reshape(-1, mol.natm * 3)
     de = mf_ir.de.reshape(-1, 3)
     de_q = np.dot(q, de)
@@ -151,7 +151,7 @@ class Infrared(lib.StreamObject):
         self._scf = self.base = mf  # type: scf.hf.RHF
 
         self.mf_hess = None  # type: Hessian
-        self.thermo_dict = None  # type: dict
+        self.vib_dict = None  # type: dict
 
         self._h1ao_grad = NotImplemented
         self._mo_e1_grad = NotImplemented
@@ -177,18 +177,18 @@ class Infrared(lib.StreamObject):
             " Mode      Frequency       Intensity      \n"
             "   #         cm^-1          km/mol        \n"
             "------------------------------------------\n")
-        for i, (f, inten) in enumerate(zip(self.thermo_dict["freq_wavenumber"], self.ir_inten)):
+        for i, (f, inten) in enumerate(zip(self.vib_dict["freq_wavenumber"], self.ir_inten)):
             flag_im = np.imag(f) > 1e-10
             chr_im = "i" if flag_im else " "
             log.log("{:5d}   {:12.4f}{:}   {:12.4f}".format(i, np.abs(f), chr_im, inten))
         log.log("------------------------------------------\n")
 
-    def plot_ir(self, w=50, x=None):
+    def plot_ir(self, w=50, x=None, scale=1):
         from matplotlib import pyplot as plt
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.grid()
 
-        freq = self.thermo_dict["freq_wavenumber"]
+        freq = self.vib_dict["freq_wavenumber"] * scale
         ir_inten = self.ir_inten.copy()
         ir_inten[np.abs(np.imag(freq)) > 1e-10] = 0
         freq = np.real(freq)
