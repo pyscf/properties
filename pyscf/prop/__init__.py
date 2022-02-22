@@ -25,3 +25,4 @@ from . import polarizability
 from . import rotational_gtensor
 from . import ssc
 from . import zfs
+from . import infrared
