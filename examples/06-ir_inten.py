@@ -30,7 +30,7 @@ if __name__ == '__main__':
     thermo.dump_thermo(mol, thermo.thermo(mf, mf_ir.vib_dict["freq_au"], 298.15, 101325))
 
     # Following code requires matplotlib library
-    # NOTE: The vibration frequency in IR spectra plot is scaled by 0.903
+    # NOTE: The vibration frequency in IR spectra plot is scaled by 0.956
     #       For more information, please consult CCCBDB recommendation
     #       https://cccbdb.nist.gov/vibscalejust.asp
     fig, ax, ax2 = mf_ir.plot_ir(w=100, scale=0.956)
