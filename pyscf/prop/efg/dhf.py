@@ -30,7 +30,7 @@ from pyscf.prop.efg import rhf as rhf_efg
 warnings.warn('Module EFG is under testing')
 
 
-def kernel(method, efg_nuc=None):
+def kernel(method, efg_nuc=None, dm=None):
     log = lib.logger.Logger(method.stdout, method.verbose)
     log.info('\n******** EFG for 4-component SCF methods (In testing) ********')
     mol = method.mol
@@ -38,7 +38,8 @@ def kernel(method, efg_nuc=None):
         efg_nuc = range(mol.natm)
 
     c = lib.param.LIGHT_SPEED
-    dm = method.make_rdm1()
+    if dm is None:
+        dm = method.make_rdm1()
 
     log.info('\nElectric Field Gradient Tensor Results')
     n2c = mol.nao_2c()

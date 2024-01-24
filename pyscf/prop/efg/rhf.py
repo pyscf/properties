@@ -45,14 +45,15 @@ from pyscf.data.nucprop import ISOTOPE_QUAD_MOMENT
 warnings.warn('Module EFG is under testing')
 
 
-def kernel(method, efg_nuc=None):
+def kernel(method, efg_nuc=None, dm=None):
     log = lib.logger.Logger(method.stdout, method.verbose)
     log.info('\n******** EFG for non-relativistic methods (In testing) ********')
     mol = method.mol
     if efg_nuc is None:
         efg_nuc = range(mol.natm)
 
-    dm = method.make_rdm1(ao_repr=True)
+    if dm is None:
+        dm = method.make_rdm1(ao_repr=True)
     if not (isinstance(dm, numpy.ndarray) and dm.ndim == 2):
         # UHF density matrix
         dm = dm[0] + dm[1]
