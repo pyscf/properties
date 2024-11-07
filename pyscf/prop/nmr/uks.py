@@ -32,7 +32,8 @@ def get_vxc_giao(ni, mol, grids, xc_code, dms, max_memory=2000, verbose=None):
     make_rho, nset, nao = ni._gen_rho_evaluator(mol, dms, hermi=1)
     ngrids = len(grids.weights)
     BLKSIZE = numint.BLKSIZE
-    blksize = min(int(max_memory/12*1e6/8/nao/BLKSIZE)*BLKSIZE, ngrids)
+    blksize = int(max_memory*1e6/(12*nao*8*BLKSIZE))
+    blksize = max(4, min(blksize, ngrids//BLKSIZE+1, 1200)) * BLKSIZE
     shls_slice = (0, mol.nbas)
     ao_loc = mol.ao_loc_nr()
 

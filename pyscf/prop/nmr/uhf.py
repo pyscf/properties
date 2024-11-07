@@ -191,8 +191,8 @@ def gen_vind(mf, mo_coeff, mo_occ):
     noccb = orbob.shape[1]
     nao, nmo = mo_coeff[0].shape
     def vind(mo1):
-        mo1a = mo1.reshape(3,-1)[:,:nocca*nmo].reshape(3,nmo,nocca)
-        mo1b = mo1.reshape(3,-1)[:,nocca*nmo:].reshape(3,nmo,noccb)
+        mo1a = mo1[:,:nocca*nmo].reshape(-1,nmo,nocca)
+        mo1b = mo1[:,nocca*nmo:].reshape(-1,nmo,noccb)
         dm1a = [reduce(numpy.dot, (mo_coeff[0], x, orboa.T.conj())) for x in mo1a]
         dm1b = [reduce(numpy.dot, (mo_coeff[1], x, orbob.T.conj())) for x in mo1b]
         dm1 = numpy.asarray(([d1-d1.conj().T for d1 in dm1a],
@@ -200,8 +200,8 @@ def gen_vind(mf, mo_coeff, mo_occ):
         v1ao = vresp(dm1)
         v1a = [reduce(numpy.dot, (mo_coeff[0].T.conj(), x, orboa)) for x in v1ao[0]]
         v1b = [reduce(numpy.dot, (mo_coeff[1].T.conj(), x, orbob)) for x in v1ao[1]]
-        v1mo = numpy.hstack((numpy.asarray(v1a).reshape(3,-1),
-                             numpy.asarray(v1b).reshape(3,-1)))
+        v1mo = numpy.hstack((numpy.asarray(v1a),
+                             numpy.asarray(v1b)))
         return v1mo.ravel()
     return vind
 
