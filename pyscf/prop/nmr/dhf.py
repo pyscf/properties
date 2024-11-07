@@ -373,8 +373,8 @@ def _call_rmb_vhf1(mol, dm, key='giao'):
     dmls = dm[:n2c,n2c:].copy()
     dmsl = dm[n2c:,:n2c].copy()
     dmss = dm[n2c:,n2c:].copy()
-    vj = numpy.zeros((3,n2c*2,n2c*2), dtype=numpy.complex)
-    vk = numpy.zeros((3,n2c*2,n2c*2), dtype=numpy.complex)
+    vj = numpy.zeros((3,n2c*2,n2c*2), dtype=numpy.complex128)
+    vk = numpy.zeros((3,n2c*2,n2c*2), dtype=numpy.complex128)
     vx = _vhf.rdirect_mapdm('int2e_'+key+'_sa10sp1spsp2_spinor', 's2kl',
                             ('ji->s2kl', 'lk->s1ij', 'jk->s1il', 'li->s1kj'),
                             dmss, 3, mol._atm, mol._bas, mol._env) * c1**4
@@ -405,8 +405,8 @@ def _call_giao_vhf1(mol, dm):
     dmls = dm[:n2c,n2c:].copy()
     dmsl = dm[n2c:,:n2c].copy()
     dmss = dm[n2c:,n2c:].copy()
-    vj = numpy.zeros((3,n2c*2,n2c*2), dtype=numpy.complex)
-    vk = numpy.zeros((3,n2c*2,n2c*2), dtype=numpy.complex)
+    vj = numpy.zeros((3,n2c*2,n2c*2), dtype=numpy.complex128)
+    vk = numpy.zeros((3,n2c*2,n2c*2), dtype=numpy.complex128)
     vx = _vhf.rdirect_mapdm('int2e_g1_spinor', 'a4ij',
                             ('lk->s2ij', 'jk->s1il'), dmll, 3,
                             mol._atm, mol._bas, mol._env)

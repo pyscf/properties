@@ -238,7 +238,7 @@ def gen_vind(mf, mo_coeff, mo_occ):
     nao, nmo = mo_coeff.shape
     def vind(mo1):
         dm1 = [reduce(numpy.dot, (mo_coeff, x*2, orbo.T.conj()))
-               for x in mo1.reshape(3,nmo,nocc)]
+               for x in mo1.reshape(-1,nmo,nocc)]
         dm1 = numpy.asarray([d1-d1.conj().T for d1 in dm1])
         v1mo = lib.einsum('xpq,pi,qj->xij', vresp(dm1), mo_coeff.conj(), orbo)
         return v1mo.ravel()
