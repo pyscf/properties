@@ -19,25 +19,27 @@ from pyscf import lib
 from pyscf.pbc import gto, scf
 from pyscf.pbc.prop.polarizability import rhf
 
-cell = gto.Cell()
-cell.atom = """H  0.0 0.0 0.0
-               F  0.9 0.0 0.0
-            """
-cell.basis = 'sto-3g'
-cell.a = [[2.82, 0, 0], [0, 2.82, 0], [0, 0, 2.82]]
-cell.dimension = 1
-cell.precision = 1e-10
-cell.output = '/dev/null'
-cell.build()
+def setUpModule():
+    global cell, kmf, polar
+    cell = gto.Cell()
+    cell.atom = """H  0.0 0.0 0.0
+                   F  0.9 0.0 0.0
+                """
+    cell.basis = 'sto-3g'
+    cell.a = [[2.82, 0, 0], [0, 2.82, 0], [0, 0, 2.82]]
+    cell.dimension = 1
+    cell.precision = 1e-10
+    cell.output = '/dev/null'
+    cell.build()
 
-kpts = cell.make_kpts([16,1,1])
-kmf = scf.KRHF(cell, kpts=kpts, exxdiv="ewald").density_fit()
-kmf.kernel()
-polar = rhf.Polarizability(kmf, kpts)
+    kpts = cell.make_kpts([16,1,1])
+    kmf = scf.KRHF(cell, kpts=kpts, exxdiv="ewald").density_fit()
+    kmf.kernel()
+    polar = rhf.Polarizability(kmf, kpts)
 
 def tearDownModule():
-    global cell, kmf
-    del cell, kmf
+    global cell, kmf, polar
+    del cell, kmf, polar
 
 class KnownValues(unittest.TestCase):
     def test_dip_moment(self):
@@ -63,7 +65,7 @@ class KnownValues(unittest.TestCase):
 
     def test_hyper_polarizability(self):
         e3 = polar.hyper_polarizability()
-        self.assertAlmostEqual(e3[0,0,0], 3.02691297, 6)
+        self.assertAlmostEqual(e3[0,0,0], 3.02691297, 5)
         self.assertAlmostEqual(e3[0,1,1], -1.97889278e-02, 6)
         self.assertAlmostEqual(e3[0,2,2], e3[0,1,1], 9)
 

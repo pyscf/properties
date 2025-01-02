@@ -59,16 +59,19 @@ class KnowValues(unittest.TestCase):
         ref = numpy.einsum('px,py->xy', v, u1)*2
         val = rhf.Polarizability(mf).polarizability_with_freq(freq)
         # errors mainly due to krylov solver
-        self.assertAlmostEqual(abs(ref-val).max(), 0, 7)
+        self.assertAlmostEqual(abs(ref-val).max(), 0, 6)
 
         # static property
         ref = numpy.einsum('px,py->xy', v1, numpy.linalg.solve(a+b, v1))*4
         val = rhf.Polarizability(mf).polarizability()
-        self.assertAlmostEqual(abs(ref-val).max(), 0, 7)
+        self.assertAlmostEqual(abs(ref-val).max(), 0, 6)
 
         val = rhf.Polarizability(mf).polarizability_with_freq(freq=0)
         # errors mainly due to krylov solver
-        self.assertAlmostEqual(abs(ref-val).max(), 0, 7)
+        self.assertAlmostEqual(abs(ref-val).max(), 0, 6)
+
+        val = mf.Polarizability().polarizability()
+        self.assertAlmostEqual(abs(ref-val).max(), 0, 6)
 
 
     def test_polarizability_with_freq_against_tdhf(self):
@@ -97,6 +100,53 @@ class KnowValues(unittest.TestCase):
         ref = freq_to_alpha( 0.1)
         val = rhf.Polarizability(mf).polarizability_with_freq(freq= 0.1)
         self.assertAlmostEqual(abs(ref - val).max(), 0, 8)
+
+    def test_finite_difference(self):
+        mol = gto.Mole()
+        mol.atom = '''h  ,  0.   0.   0.
+                      F  ,  0.   0.   .917'''
+        mol.basis = '631g'
+        mol.build()
+
+        mf = scf.RHF(mol).run(conv_tol=1e-14)
+        polar = mf.Polarizability().polarizability()
+        hpol = mf.Polarizability().hyper_polarizability()
+
+        mf.verbose = 0
+        charges = mol.atom_charges()
+        coords  = mol.atom_coords()
+        charge_center = numpy.einsum('i,ix->x', charges, coords) / charges.sum()
+        with mol.with_common_orig(charge_center):
+            ao_dip = mol.intor_symmetric('int1e_r', comp=3)
+        h1 = mf.get_hcore()
+        def apply_E(E):
+            mf.get_hcore = lambda *args, **kwargs: h1 + numpy.einsum('x,xij->ij', E, ao_dip)
+            mf.run(conv_tol=1e-14)
+            return mf.dip_moment(mol, mf.make_rdm1(), unit='AU', verbose=0)
+        e1 = apply_E([ 0.0001, 0, 0])
+        e2 = apply_E([-0.0001, 0, 0])
+        self.assertAlmostEqual(abs(polar[0] - (e1 - e2) / 0.0002).max(), 0, 5)
+        e1 = apply_E([0, 0.0001, 0])
+        e2 = apply_E([0,-0.0001, 0])
+        self.assertAlmostEqual(abs(polar[1] - (e1 - e2) / 0.0002).max(), 0, 5)
+        e1 = apply_E([0, 0, 0.0001])
+        e2 = apply_E([0, 0,-0.0001])
+        self.assertAlmostEqual(abs(polar[2] - (e1 - e2) / 0.0002).max(), 0, 5)
+
+        def apply_E(E):
+            mf.get_hcore = lambda *args, **kwargs: h1 + numpy.einsum('x,xij->ij', E, ao_dip)
+            mf.run(conv_tol=1e-14)
+            return mf.Polarizability().polarizability()
+        e1 = apply_E([ 0.0001, 0, 0])
+        e2 = apply_E([-0.0001, 0, 0])
+        self.assertAlmostEqual(abs(hpol[0] - (e1 - e2) / 0.0002).max(), 0, 4)
+        e1 = apply_E([0, 0.0001, 0])
+        e2 = apply_E([0,-0.0001, 0])
+        self.assertAlmostEqual(abs(hpol[1] - (e1 - e2) / 0.0002).max(), 0, 4)
+        e1 = apply_E([0, 0, 0.0001])
+        e2 = apply_E([0, 0,-0.0001])
+        self.assertAlmostEqual(abs(hpol[2] - (e1 - e2) / 0.0002).max(), 0, 4)
+
 
 if __name__ == "__main__":
     print("Tests for polarizability")

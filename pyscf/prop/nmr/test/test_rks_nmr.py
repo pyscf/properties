@@ -15,7 +15,8 @@ def setUpModule():
         nucmod = {'F': 2}, # gaussian nuclear model
         basis = '6-31g',
     )
-    mf = dft.RKS(mol).run()
+    with lib.temporary_env(dft.radi, ATOM_SPECIFIC_TREUTLER_GRIDS=False):
+        mf = dft.RKS(mol).run()
 
 def tearDownModule():
     global mol, mf

@@ -19,6 +19,9 @@ from pyscf import lib
 from pyscf import gto
 from pyscf import dft
 from pyscf.prop.ssc import rhf as rhf_ssc
+import pyscf
+from packaging.version import Version
+pyscf_28 = Version(pyscf.__version__) >= Version('2.8.0')
 
 # Test numerical integration scheme JCP 73, 5718 (1980); DOI:10.1063/1.440051
 # Test field gradients integrals
@@ -77,11 +80,12 @@ class KnownValues(unittest.TestCase):
         fakemol._env = numpy.hstack((r0, a**2, w*2/numpy.pi**.5/s_cart2sph_factor))
         fakemol._built = True
 
-        pmol = mol + fakemol
-        i3c = pmol.intor('int4c1e_sph', shls_slice=(mol.nbas,pmol.nbas, 0,mol.nbas,0,mol.nbas,0,mol.nbas))
-        nao = mol.nao_nr()
-        i3c = i3c.reshape(nao,nao,nao)
-        self.assertAlmostEqual(abs(i3c - nablav).max(), 0, 9)
+        if pyscf_28:
+            pmol = mol + fakemol
+            i3c = pmol.intor('int4c1e_sph', shls_slice=(mol.nbas,pmol.nbas, 0,mol.nbas,0,mol.nbas,0,mol.nbas))
+            nao = mol.nao_nr()
+            i3c = i3c.reshape(nao,nao,nao)
+            self.assertAlmostEqual(abs(i3c - nablav).max(), 0, 9)
 
     def test1_3c_r3(self):
         '''3-center vec{r}/r^3 type integral'''
@@ -103,11 +107,12 @@ class KnownValues(unittest.TestCase):
         fakemol._env = numpy.hstack((r0, a**2, a**2*w*4/numpy.pi**.5/p_cart2sph_factor))
         fakemol._built = True
 
-        pmol = mol + fakemol
-        i3c = pmol.intor('int4c1e_sph', shls_slice=(mol.nbas,pmol.nbas, 0,mol.nbas,0,mol.nbas,0,mol.nbas))
-        nao = mol.nao_nr()
-        i3c = i3c.reshape(3,nao,nao,nao)
-        self.assertAlmostEqual(abs(i3c - nablav).max(), 0, 9)
+        if pyscf_28:
+            pmol = mol + fakemol
+            i3c = pmol.intor('int4c1e_sph', shls_slice=(mol.nbas,pmol.nbas, 0,mol.nbas,0,mol.nbas,0,mol.nbas))
+            nao = mol.nao_nr()
+            i3c = i3c.reshape(3,nao,nao,nao)
+            self.assertAlmostEqual(abs(i3c - nablav).max(), 0, 9)
 
 
     def test2_3c_r3(self):
@@ -150,13 +155,14 @@ class KnownValues(unittest.TestCase):
         fakemol._env = numpy.hstack((orig1, orig2, a**2, a**2*w*4/numpy.pi**.5/p_cart2sph_factor))
         fakemol._built = True
 
-        pmol = mol + fakemol
-        mat = pmol.intor('int4c1e_sph',
-                         shls_slice=(mol.nbas, pmol.nbas, mol.nbas, pmol.nbas, 0, mol.nbas, 0, mol.nbas))
-        nao = mol.nao_nr()
-        mat = mat.reshape(6,6,nao,nao)
-        self.assertAlmostEqual(mat[0,3,0,3], 0.01931792982, 9)
-        self.assertAlmostEqual(mat[0,4,0,3], 0.01431132964, 9)
+        if pyscf_28:
+            pmol = mol + fakemol
+            mat = pmol.intor('int4c1e_sph',
+                             shls_slice=(mol.nbas, pmol.nbas, mol.nbas, pmol.nbas, 0, mol.nbas, 0, mol.nbas))
+            nao = mol.nao_nr()
+            mat = mat.reshape(6,6,nao,nao)
+            self.assertAlmostEqual(mat[0,3,0,3], 0.01931792982, 9)
+            self.assertAlmostEqual(mat[0,4,0,3], 0.01431132964, 9)
 
         # With numerical integration
         grids = dft.gen_grid.Grids(mol)

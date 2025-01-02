@@ -15,7 +15,8 @@ def setUpModule():
         nucmod = {'F': 2}, # gaussian nuclear model
         basis = '6-31g',
     )
-    mf = dft.UKS(mol).run()
+    with lib.temporary_env(dft.radi, ATOM_SPECIFIC_TREUTLER_GRIDS=False):
+        mf = dft.UKS(mol).run()
 
 def tearDownModule():
     global mol, mf
@@ -42,8 +43,8 @@ class KnownValues(unittest.TestCase):
     def test_nr_giao_cpscf(self):
         nmr = mf.NMR()
         msc = nmr.kernel()
-        self.assertAlmostEqual(msc[1][0,0], 368.881240, 5)
-        self.assertAlmostEqual(msc[1][1,1], 368.881240, 5)
+        self.assertAlmostEqual(msc[1][0,0], 368.881232, 5)
+        self.assertAlmostEqual(msc[1][1,1], 368.881232, 5)
         self.assertAlmostEqual(msc[1][2,2], 482.413298, 5)
         self.assertAlmostEqual(lib.fp(msc), -131.708525548098, 5)
 

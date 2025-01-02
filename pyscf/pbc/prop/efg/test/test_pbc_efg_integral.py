@@ -39,7 +39,9 @@ def ewald_deriv1(cell, atm_id):
                np.einsum('Ljx,j,Lj->x', rLij, chargs,
                          np.exp(-ew_eta**2 * r**2) / r**2))
 
-    mesh = gto.cell._cut_mesh_for_ewald(cell, cell.mesh)
+    log_precision = np.log(cell.precision / (chargs.sum()*16*np.pi**2))
+    ke_cutoff = -2*ew_eta**2*log_precision
+    mesh = cell.cutoff_to_mesh(ke_cutoff)
     Gv, Gvbase, weights = cell.get_Gv_weights(mesh)
     absG2 = np.einsum('gi,gi->g', Gv, Gv)
     absG2[absG2==0] = 1e200
@@ -80,7 +82,9 @@ def ewald_deriv2(cell, atm_id):
     ewovrl += (4./np.sqrt(np.pi) * ew_eta**3 * chargs[atm_id] *
                np.einsum('Ljxy,j,Lj->xy', rr, chargs, exp_part))
 
-    mesh = gto.cell._cut_mesh_for_ewald(cell, cell.mesh)
+    log_precision = np.log(cell.precision / (chargs.sum()*16*np.pi**2))
+    ke_cutoff = -2*ew_eta**2*log_precision
+    mesh = cell.cutoff_to_mesh(ke_cutoff)
     Gv, Gvbase, weights = cell.get_Gv_weights(mesh)
     GG = np.einsum('gi,gj->gij', Gv, Gv)
     absG2 = np.einsum('gi,gi->g', Gv, Gv)
