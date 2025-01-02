@@ -24,6 +24,7 @@ import sys
 
 from functools import reduce
 import numpy
+import numpy as np
 from pyscf import lib
 from pyscf.lib import logger
 from pyscf.scf import _vhf
@@ -53,7 +54,7 @@ def dia(mol, dm0, gauge_orig=None, shielding_nuc=None, mb='RMB'):
             t11 = mol.intor('int1e_spgsa01_spinor', 9)
         else:
             t11 = numpy.zeros(9)
-        h11 = numpy.zeros((9, n4c, n4c), complex)
+        h11 = np.zeros((9, n4c, n4c), np.complex128)
         for i in range(9):
             h11[i,n2c:,:n2c] = t11[i] * .5
             h11[i,:n2c,n2c:] = t11[i].conj().T * .5
@@ -71,7 +72,7 @@ def para(mol, mo10, mo_coeff, mo_occ, shielding_nuc=None):
     msc_para = numpy.zeros((len(shielding_nuc),3,3))
     para_neg = numpy.zeros((len(shielding_nuc),3,3))
     para_occ = numpy.zeros((len(shielding_nuc),3,3))
-    h01 = numpy.zeros((3, n4c, n4c), complex)
+    h01 = np.zeros((3, n4c, n4c), np.complex128)
     orbo = mo_coeff[:,mo_occ>0]
     for n, atm_id in enumerate(shielding_nuc):
         mol.set_rinv_origin(mol.atom_coord(atm_id))
@@ -138,7 +139,7 @@ def make_h10rkb(mol, dm0, gauge_orig=None, with_gaunt=False,
         sys.stderr('NMR gaunt part not implemented\n')
     n2c = t1.shape[2]
     n4c = n2c * 2
-    h1 = numpy.zeros((3, n4c, n4c), complex)
+    h1 = np.zeros((3, n4c, n4c), np.complex128)
     for i in range(3):
         h1[i,:n2c,n2c:] += .5 * t1[i]
         h1[i,n2c:,:n2c] += .5 * t1[i].conj().T
@@ -238,7 +239,7 @@ def make_s10(mol, gauge_orig=None, mb='RMB'):
     n2c = mol.nao_2c()
     n4c = n2c * 2
     c = lib.param.LIGHT_SPEED
-    s1 = numpy.zeros((3, n4c, n4c), complex)
+    s1 = np.zeros((3, n4c, n4c), np.complex128)
     if mb.upper() == 'RMB':
         if gauge_orig is None:
             t1 = mol.intor('int1e_giao_sa10sp_spinor', 3)
@@ -264,13 +265,13 @@ def gen_vind(mf, mo_coeff, mo_occ):
     nao, nmo = mo_coeff.shape
     nocc = orbo.shape[1]
     def vind(mo1):
+        mo1 = mo1.reshape(-1,nmo,nocc)
         #direct_scf_bak, mf.direct_scf = mf.direct_scf, False
-        dm1 = numpy.asarray([reduce(numpy.dot, (mo_coeff, x, orbo.T.conj()))
-                             for x in mo1.reshape(-1,nmo,nocc)])
+        dm1 = lib.einsum('xvo,pv,qo->xpq', mo1, mo_coeff, orbo.conj())
         dm1 = dm1 + dm1.transpose(0,2,1).conj()
-# hermi=1 because dm1 = C^1 C^{0dagger} + C^0 C^{1dagger}
-        v1mo = numpy.asarray([reduce(numpy.dot, (mo_coeff.T.conj(), x, orbo))
-                              for x in mf.get_veff(mol, dm1, hermi=1)])
+        # hermi=1 because dm1 = C^1 C^{0dagger} + C^0 C^{1dagger}
+        v1ao = mf.get_veff(mol, dm1, hermi=1)
+        v1mo = lib.einsum('xpq,pi,qj->xij', v1ao, mo_coeff.conj(), orbo)
         #mf.direct_scf = direct_scf_bak
         return v1mo.ravel()
     return vind
@@ -431,26 +432,3 @@ def _call_giao_vhf1(mol, dm):
         vj[i] = lib.hermi_triu(vj[i], 1)
         vk[i] = vk[i] + vk[i].T.conj()
     return vj, vk
-
-
-if __name__ == '__main__':
-    from pyscf import gto
-    from pyscf import scf
-    mol = gto.Mole()
-    mol.verbose = 0
-    mol.output = None#'out_dhf'
-
-    mol.atom = [['He', (0.,0.,0.)], ]
-    mol.basis = {
-        'He': [(0, 0, (1., 1.)),
-               (0, 0, (3., 1.)),
-               (1, 0, (1., 1.)), ]}
-    mol.build()
-
-    mf = scf.dhf.UHF(mol)
-    mf.scf()
-    nmr = mf.NMR()
-    nmr.mb = 'RMB'
-    nmr.cphf = True
-    msc = nmr.shielding()
-    print(msc) # 64.4318104

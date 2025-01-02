@@ -17,7 +17,7 @@ NAME = 'pyscf-properties'
 DESCRIPTION  = 'Molecular and crystal electromagnetic properties'
 SO_EXTENSIONS = {
 }
-DEPENDENCIES = ['pyscf', 'numpy']
+DEPENDENCIES = ['pyscf>=2.7', 'numpy']
 
 #######################################################################
 # Unless not working, nothing below needs to be changed.

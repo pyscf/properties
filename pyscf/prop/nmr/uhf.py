@@ -191,17 +191,17 @@ def gen_vind(mf, mo_coeff, mo_occ):
     noccb = orbob.shape[1]
     nao, nmo = mo_coeff[0].shape
     def vind(mo1):
-        mo1a = mo1[:,:nocca*nmo].reshape(-1,nmo,nocca)
-        mo1b = mo1[:,nocca*nmo:].reshape(-1,nmo,noccb)
-        dm1a = [reduce(numpy.dot, (mo_coeff[0], x, orboa.T.conj())) for x in mo1a]
-        dm1b = [reduce(numpy.dot, (mo_coeff[1], x, orbob.T.conj())) for x in mo1b]
-        dm1 = numpy.asarray(([d1-d1.conj().T for d1 in dm1a],
-                             [d1-d1.conj().T for d1 in dm1b]))
+        nz = len(mo1)
+        mo1a = mo1[:,:nocca*nmo].reshape(nz,nmo,nocca)
+        mo1b = mo1[:,nocca*nmo:].reshape(nz,nmo,noccb)
+        dm1a = lib.einsum('xvo,pv,qo->xpq', mo1a, mo_coeff[0], orboa.conj())
+        dm1b = lib.einsum('xvo,pv,qo->xpq', mo1b, mo_coeff[1], orbob.conj())
+        dm1 = numpy.asarray([dm1a - dm1a.conj().transpose(0,2,1),
+                             dm1b - dm1b.conj().transpose(0,2,1)])
         v1ao = vresp(dm1)
-        v1a = [reduce(numpy.dot, (mo_coeff[0].T.conj(), x, orboa)) for x in v1ao[0]]
-        v1b = [reduce(numpy.dot, (mo_coeff[1].T.conj(), x, orbob)) for x in v1ao[1]]
-        v1mo = numpy.hstack((numpy.asarray(v1a),
-                             numpy.asarray(v1b)))
+        v1a = lib.einsum('xpq,pi,qj->xij', v1ao[0], mo_coeff[0].conj(), orboa)
+        v1b = lib.einsum('xpq,pi,qj->xij', v1ao[1], mo_coeff[1].conj(), orbob)
+        v1mo = numpy.hstack((v1a.reshape(nz,-1), v1b.reshape(nz,-1)))
         return v1mo.ravel()
     return vind
 
@@ -224,48 +224,3 @@ class NMR(rhf_nmr.NMR):
 
 from pyscf import scf
 scf.uhf.UHF.NMR = lib.class_as_method(NMR)
-
-
-if __name__ == '__main__':
-    from pyscf import gto
-    from pyscf import scf
-    mol = gto.Mole()
-    mol.verbose = 0
-    mol.output = None
-
-    mol.atom.extend([
-        [1   , (0. , 0. , .917)],
-        ['F' , (0. , 0. , 0.)], ])
-    mol.nucmod = {'F': 2} # gaussian nuclear model
-    mol.basis = {'H': '6-31g',
-                 'F': '6-31g',}
-    mol.build()
-
-    mf = scf.UHF(mol).run()
-    nmr = mf.NMR()
-    nmr.cphf = True
-    #nmr.gauge_orig = (0,0,0)
-    msc = nmr.kernel() # _xx,_yy = 375.232839, _zz = 483.002139
-    print(lib.finger(msc) - -132.22895063293751)
-
-    nmr.cphf = True
-    nmr.gauge_orig = (1,1,1)
-    msc = nmr.shielding()
-    print(lib.finger(msc) - -108.48536089934709)
-
-    nmr.cphf = False
-    nmr.gauge_orig = None
-    msc = nmr.shielding()
-    print(lib.finger(msc) - -133.26526049655627)
-
-    mol.atom.extend([
-        [1 , (1. , 0.3, .417)],
-        [1 , (0.2, 1. , 0.)],])
-    mol.build()
-    mf = scf.UHF(mol).run()
-    nmr = NMR(mf)
-    nmr.cphf = False
-    nmr.gauge_orig = None
-    msc = nmr.shielding()
-    print(lib.finger(msc) - -123.98596361883168)
-

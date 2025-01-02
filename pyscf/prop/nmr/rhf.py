@@ -237,10 +237,11 @@ def gen_vind(mf, mo_coeff, mo_occ):
     nocc = orbo.shape[1]
     nao, nmo = mo_coeff.shape
     def vind(mo1):
-        dm1 = [reduce(numpy.dot, (mo_coeff, x*2, orbo.T.conj()))
-               for x in mo1.reshape(-1,nmo,nocc)]
-        dm1 = numpy.asarray([d1-d1.conj().T for d1 in dm1])
-        v1mo = lib.einsum('xpq,pi,qj->xij', vresp(dm1), mo_coeff.conj(), orbo)
+        mo1 = mo1.reshape(-1,nmo,nocc)
+        dm1 = lib.einsum('xvo,pv,qo->xpq', mo1, mo_coeff, 2*orbo.conj())
+        dm1 = dm1 - dm1.conj().transpose(0,2,1)
+        v1ao = vresp(dm1)
+        v1mo = lib.einsum('xpq,pi,qj->xij', v1ao, mo_coeff.conj(), orbo)
         return v1mo.ravel()
     return vind
 
@@ -337,57 +338,3 @@ def _write(stdout, msc3x3, title):
     stdout.write('B_y %s\n' % str(msc3x3[1]))
     stdout.write('B_z %s\n' % str(msc3x3[2]))
     stdout.flush()
-
-
-if __name__ == '__main__':
-    from pyscf import gto
-    from pyscf import scf
-    mol = gto.Mole()
-    mol.verbose = 0
-    mol.output = None
-
-    mol.atom.extend([
-        [1   , (0. , 0. , .917)],
-        ['F' , (0. , 0. , 0.)], ])
-    mol.nucmod = {'F': 2} # gaussian nuclear model
-    mol.basis = {'H': '6-31g',
-                 'F': '6-31g',}
-    mol.build()
-
-    rhf = scf.RHF(mol).run()
-    nmr = rhf.NMR()
-    nmr.cphf = True
-    #nmr.gauge_orig = (0,0,0)
-    msc = nmr.kernel() # _xx,_yy = 375.232839, _zz = 483.002139
-    print(msc[1][0,0], msc[1][1,1], 375.232839)
-    print(msc[1][2,2], 483.002139)
-    print(lib.finger(msc) - -132.22895063293751)
-
-    nmr.cphf = True
-    nmr.gauge_orig = (1,1,1)
-    msc = nmr.shielding()
-    print(msc[1][0,0], msc[1][1,1], 342.447242)
-    print(msc[1][2,2], 483.002139)
-    print(lib.finger(msc) - -108.48528212325664)
-
-    nmr.cphf = False
-    nmr.gauge_orig = None
-    msc = nmr.shielding()
-    print(msc[1][0,0], msc[1][1,1], 449.032227)
-    print(msc[1][2,2], 483.002139)
-    print(lib.finger(msc) - -133.26526049655627)
-
-    mol.atom.extend([
-        [1 , (1. , 0.3, .417)],
-        [1 , (0.2, 1. , 0.)],])
-    mol.build()
-    mf = scf.RHF(mol).run()
-    nmr = NMR(mf)
-    nmr.cphf = False
-    nmr.gauge_orig = None
-    msc = nmr.shielding()
-    print(msc[1][0,0], 283.514599)
-    print(msc[1][1,1], 292.578151)
-    print(msc[1][2,2], 257.348176)
-    print(lib.finger(msc) - -123.98600632099961)
-

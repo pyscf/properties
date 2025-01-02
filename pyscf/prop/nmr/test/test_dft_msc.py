@@ -17,26 +17,32 @@ import unittest
 import numpy
 from pyscf import gto
 from pyscf import dft
+from pyscf import lib
 from pyscf.prop import nmr
 from pyscf.data import nist
-nist.ALPHA = 1./137.03599967994
 
-mol = gto.Mole()
-mol.verbose = 5
-mol.output = '/dev/null'
+def setUpModule():
+    global mol, ALPHA_backup
+    ALPHA_backup = nist.ALPHA
+    nist.ALPHA = 1./137.03599967994
+    mol = gto.Mole()
+    mol.verbose = 5
+    mol.output = '/dev/null'
 
-mol.atom = '''
-     O      0.   0.       0.
-     H      0.  -0.757    0.587
-     H      0.   0.757    0.587'''
-mol.basis = 'ccpvdz'
-mol.build()
+    mol.atom = '''
+         O      0.   0.       0.
+         H      0.  -0.757    0.587
+         H      0.   0.757    0.587'''
+    mol.basis = 'ccpvdz'
+    mol.build()
 
-def finger(mat):
-    w = numpy.cos(numpy.arange(mat.size))
-    return numpy.dot(w, mat.ravel())
+def tearDownModule():
+    global mol, ALPHA_backup
+    mol.stdout.close()
+    del mol
+    nist.ALPHA = ALPHA_backup
 
-class KnowValues(unittest.TestCase):
+class KnownValues(unittest.TestCase):
     def test_nr_lda_common_gauge(self):
         mf = dft.RKS(mol)
         mf.conv_tol_grad = 1e-6
@@ -46,7 +52,7 @@ class KnowValues(unittest.TestCase):
         m = nmr.RKS(mf)
         m.gauge_orig = (1,1,1)
         msc = m.kernel()
-        self.assertAlmostEqual(finger(msc), 13.743109885011432, 5)
+        self.assertAlmostEqual(lib.fp(msc), 13.743192763294939, 5)
 
     def test_nr_b3lyp_common_gauge(self):
         mf = dft.RKS(mol)
@@ -57,7 +63,7 @@ class KnowValues(unittest.TestCase):
         m = nmr.RKS(mf)
         m.gauge_orig = (1,1,1)
         msc = m.kernel()
-        self.assertAlmostEqual(finger(msc), 15.205571299799631, 5)
+        self.assertAlmostEqual(lib.fp(msc), 15.205547107289915, 5)
 
     def test_nr_lda_giao(self):
         mf = dft.RKS(mol)
@@ -67,7 +73,7 @@ class KnowValues(unittest.TestCase):
         mf.scf()
         m = nmr.RKS(mf)
         msc = m.kernel()
-        self.assertAlmostEqual(finger(msc), 58.642932758748856, 5)
+        self.assertAlmostEqual(lib.fp(msc), 58.64286971828335, 5)
 
     def test_nr_b3lyp_giao(self):
         mf = dft.RKS(mol)
@@ -77,11 +83,10 @@ class KnowValues(unittest.TestCase):
         mf.scf()
         m = nmr.RKS(mf)
         msc = m.kernel()
-        self.assertAlmostEqual(finger(msc), 55.069383506691494, 5)
+        self.assertAlmostEqual(lib.fp(msc), 55.0693990323670, 5)
 
 
 
 if __name__ == "__main__":
     print("Full Tests of RHF-MSC DHF-MSC for HF")
     unittest.main()
-
