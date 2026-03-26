@@ -2,5 +2,4 @@
   
 set -e
 
-cd ./pyscf
 pytest -c pytest.ini
