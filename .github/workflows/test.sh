@@ -3,4 +3,4 @@
 set -e
 
 cd ./pyscf
-pytest -k 'not _slow'
+pytest -c pytest.ini
