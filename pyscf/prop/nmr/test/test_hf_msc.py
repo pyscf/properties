@@ -46,6 +46,14 @@ rhf.scf()
 def finger(mat):
     return abs(mat).sum()
 
+def proc_nmr_tensor(tsr):
+    tsr = (tsr + tsr.T) / 2
+    eigs = numpy.linalg.eigvalsh(tsr)
+    eigs.sort()
+    nmr_iso = eigs.sum() / 3
+    nmr_ani = eigs[2] - (eigs[0] + eigs[1]) / 2
+    return nmr_iso, nmr_ani
+
 class KnowValues(unittest.TestCase):
     def test_nr_common_gauge_ucpscf(self):
         m = nmr.RHF(nrhf)
@@ -136,6 +144,13 @@ class KnowValues(unittest.TestCase):
         self.assertAlmostEqual(numpy.linalg.norm(h1), 73.452535645731714, 8)
         h1 = nmr.dhf.make_h10(mol, dm0, gauge_orig=(0,0,0), mb='RKB')
         self.assertAlmostEqual(numpy.linalg.norm(h1), 7.3636964305440609, 8)
+
+    def test_nr_giao_uhf(self):
+        mol_spin2 = mol.copy().set(spin=2)
+        nruhf = mol_spin2.UHF().set(conv_tol=1e-12).run()
+        m = nmr.UHF(nruhf)
+        msc = m.shielding()
+        self.assertAlmostEqual(proc_nmr_tensor(msc[1])[0], -13739.422178310575, 6)
 
 
 

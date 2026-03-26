@@ -200,8 +200,11 @@ def gen_vind(mf, mo_coeff, mo_occ):
         v1ao = vresp(dm1)
         v1a = [reduce(numpy.dot, (mo_coeff[0].T.conj(), x, orboa)) for x in v1ao[0]]
         v1b = [reduce(numpy.dot, (mo_coeff[1].T.conj(), x, orbob)) for x in v1ao[1]]
-        v1mo = numpy.hstack((numpy.asarray(v1a),
-                             numpy.asarray(v1b)))
+        nset = mo1a.shape[0]
+        v1mo = numpy.hstack((numpy.asarray(v1a).reshape(nset,-1),
+                             numpy.asarray(v1b).reshape(nset,-1)))
+        # v1mo = numpy.hstack((numpy.asarray(v1a),
+        #                      numpy.asarray(v1b)))
         return v1mo.ravel()
     return vind
 
