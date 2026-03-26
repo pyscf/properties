@@ -2,5 +2,5 @@
   
 set -e
 
-cd pyscf/nmr
+cd pyscf/prop/nmr
 pytest .
