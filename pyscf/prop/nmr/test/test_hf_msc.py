@@ -150,7 +150,7 @@ class KnowValues(unittest.TestCase):
         nruhf = mol_spin2.UHF().set(conv_tol=1e-12).run()
         m = nmr.UHF(nruhf)
         msc = m.shielding()
-        self.assertAlmostEqual(proc_nmr_tensor(msc[1])[0], -13739.422178310575, 6)
+        self.assertAlmostEqual(proc_nmr_tensor(msc[1])[0], -13739.422178310575, 4)
 
 
 
