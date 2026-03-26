@@ -2,4 +2,5 @@
   
 set -e
 
-pytest -c pytest.ini
+cd pyscf/nmr
+pytest .
