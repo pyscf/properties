@@ -100,7 +100,7 @@ def make_pso(sscobj, mol, mo1, mo_coeff, mo_occ, nuc_pair=None):
     atm2lst = sorted(set([j for i,j in nuc_pair]))
     atm1dic = dict([(ia,k) for k,ia in enumerate(atm1lst)])
     atm2dic = dict([(ia,k) for k,ia in enumerate(atm2lst)])
-    mo1 = mo1.reshape(len(atm1lst),3,nvir,nocc)
+    mo1 = mo1.reshape(len(atm2lst),3,nvir,nocc)
     h1 = make_h1_pso(mol, mo_coeff, mo_occ, atm1lst)
     h1 = numpy.asarray(h1).reshape(len(atm1lst),3,nvir,nocc)
     for i,j in nuc_pair:
