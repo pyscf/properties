@@ -38,10 +38,10 @@ def proc_hessian_(mf_hess, mo_energy=None, mo_coeff=None, mo_occ=None, h1ao_grad
     """
     mf = mf_hess.base
 
-    mo_energy = mo_energy if mo_energy else mf.mo_energy
-    mo_coeff = mo_coeff if mo_coeff else mf.mo_coeff
-    mo_occ = mo_occ if mo_occ else mf.mo_occ
-    h1ao_grad = h1ao_grad if h1ao_grad else mf_hess.make_h1(mo_coeff, mo_occ)
+    mo_energy = mf.mo_energy if mo_energy is None else mo_energy
+    mo_coeff = mf.mo_coeff if mo_coeff is None else mo_coeff
+    mo_occ = mf.mo_occ if mo_occ is None else mo_occ
+    h1ao_grad = mf_hess.make_h1(mo_coeff, mo_occ) if h1ao_grad is None else h1ao_grad
 
     moao1_grad, mo_e1_grad = mf_hess.solve_mo1(mo_energy, mo_coeff, mo_occ, h1ao_grad)
 

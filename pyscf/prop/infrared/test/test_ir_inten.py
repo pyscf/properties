@@ -58,6 +58,22 @@ class KnownValues(unittest.TestCase):
         # could be grid setting, grid response, atomic mass, ...
         self.assertTrue(np.allclose(mf_ir.ir_inten, ref_value, rtol=1e-3, atol=1e-2))
 
+    def test_proc_hessian_explicit_args(self):
+        # explicit orbitals and h1ao must give the same result as the defaults
+        for charge, spin, mod in ((0, 0, infrared.rhf), (1, 1, infrared.uhf)):
+            mol = gto.Mole(atom="N 0 0 0; H 0.8 0 0; H 0 1 0; H 0 0 1.2", basis="6-31G", verbose=0,
+                           charge=charge, spin=spin).build()
+            mf = (scf.UHF if spin else scf.RHF)(mol).run()
+            ref_hess, _, mo1_ref, _ = mod.proc_hessian_(mf.Hessian())
+            mf_hess = mf.Hessian()
+            h1ao = mf_hess.make_h1(mf.mo_coeff, mf.mo_occ)
+            mf_hess, _, mo1, _ = mod.proc_hessian_(mf_hess, mo_energy=mf.mo_energy, mo_coeff=mf.mo_coeff,
+                                                    mo_occ=mf.mo_occ, h1ao_grad=h1ao)
+            self.assertTrue(np.allclose(mf_hess.de, ref_hess.de, atol=1e-10))
+            pairs = zip(mo1, mo1_ref) if spin else [(mo1, mo1_ref)]  # UHF: one array per spin, shapes differ
+            for a, b in pairs:
+                self.assertTrue(np.allclose(a, b, atol=1e-8))
+
     # example input card for qchem (test_uks)
     """
     $molecule
